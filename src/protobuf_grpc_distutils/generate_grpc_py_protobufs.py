@@ -5,6 +5,7 @@
 import setuptools
 import os
 import glob
+from pathlib import Path
 from subprocess import check_output, CalledProcessError
 from distutils.errors import DistutilsOptionError, DistutilsExecError
 
@@ -107,3 +108,21 @@ class generate_grpc_py_protobufs(setuptools.Command):
             check_output(['python', '-m', 'grpc_tools.protoc'] + protoc_arguments, text=True)
         except CalledProcessError as e:
             raise DistutilsExecError('protoc compile failed with: "{e.stderr}"')
+
+        for root, dirs, files in os.walk(self.output_dir):
+            if '__init__.py' not in files:
+                if any(['pb2' in file for file in files]):
+                    print(root)
+                    open(os.path.join(root, '__init__.py'), 'a').close()
+
+        # Work around the fact that setuptools doesn't re-look for new packages.
+        # See discussion: https://github.com/pypa/setuptools/discussions/3728
+        with open('MANIFEST.in', 'w') as manifest:
+            manifest.write(f"graft {self.output_dir}")
+
+        # Throw an exception if we detect this is a src-layout
+        # REVISIT: is there a setuptools way of getting this info?
+        output_path = Path(self.output_dir)
+        if len(output_path.parts) > 1:
+            if output_path.parts[0] == 'src':
+                raise DistutilsExecError('src-layout not supported; setuptools does not index generated protobuf modules')
