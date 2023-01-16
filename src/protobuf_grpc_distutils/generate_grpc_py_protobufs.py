@@ -101,6 +101,7 @@ class generate_grpc_py_protobufs(setuptools.Command):
 
         protoc_arguments = [
             '--python_out=' + self.output_dir,
+            '--pyi_out=' + self.output_dir,
             '--grpc_python_out=' + self.output_dir,
         ] + proto_paths + self.proto_files
 
