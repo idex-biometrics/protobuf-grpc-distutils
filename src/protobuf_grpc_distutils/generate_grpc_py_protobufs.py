@@ -4,6 +4,7 @@
 
 import setuptools
 import os
+import sys
 import glob
 from pathlib import Path
 from subprocess import check_output, CalledProcessError
@@ -106,7 +107,7 @@ class generate_grpc_py_protobufs(setuptools.Command):
         ] + proto_paths + self.proto_files
 
         try:
-            check_output(['python3', '-m', 'grpc_tools.protoc'] + protoc_arguments, text=True)
+            check_output([sys.executable, '-m', 'grpc_tools.protoc'] + protoc_arguments, text=True)
         except CalledProcessError as e:
             raise DistutilsExecError('protoc compile failed with: "{e.stderr}"')
 
